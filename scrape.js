@@ -188,7 +188,7 @@ const getOneLaw = law => {
     return axios(url)
         .then(lawToJson)
         .then(json => {
-            fs.writeFile(`law-${json.number.toString()}.txt`, JSON.stringify(json, null, 2), err => {
+            fs.writeFile(`laws/law-${json.number.toString()}.txt`, JSON.stringify(json, null, 2), err => {
                 if (err) throw err;
                 console.log(`Law saved to file laws/law-${json.number.toString()}.txt`);
             });
