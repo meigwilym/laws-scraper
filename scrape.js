@@ -23,7 +23,7 @@ const olSubClause = item => {
             paragraph.value = child.children[0].data.trim();
             
             // inline sanctions
-            if (child.children.length > 1 && child.children[1].attribs != null && child.children[1].attribs.class.includes('sanction')) {
+            if (child.children.length > 1 && typeof child.children[1].attribs.class != 'undefined' && child.children[1].attribs.class.includes('sanction')) {
                 if (!paragraph.sanctions) paragraph.sanctions = [];
                 child.children.forEach((item, i) => {
                     if (item.attribs != null && item.attribs.class.includes('sanction_grade_') && !item.attribs.class.includes('sanction_bold') && !item.children[0].data.includes('choose')) {
@@ -133,7 +133,7 @@ const lawToJson = response => {
             };
 
             // check for sanction
-            if (item.children.length > 1 && item.children[1].attribs.class.includes('sanction')) {
+            if (item.children.length > 1 && typeof item.children[1].attribs.class != 'undefined' && item.children[1].attribs.class.includes('sanction')) {
                 if (!schedule.data.sanctions) schedule.data.sanctions = [];
                 schedule.data.sanctions.push(item.children[2].children[0].data);
             }
@@ -187,6 +187,13 @@ const getOneLaw = law => {
 
     return axios(url)
         .then(lawToJson)
+        .then(json => {
+            fs.writeFile(`law-${json.number.toString()}.txt`, JSON.stringify(json, null, 2), err => {
+                if (err) throw err;
+                console.log(`Law saved to file laws/law-${json.number.toString()}.txt`);
+            });
+            return json;
+        })
         .catch(console.error);
 };
 
@@ -201,7 +208,7 @@ const getAllLaws = () => {
         ).then(json => {
             laws.push(json);
         }).then(() => {
-            fs.writeFile("laws.txt", JSON.stringify(laws, null, 2), err => {
+            fs.writeFile("laws/all-rugby-laws.txt", JSON.stringify(laws, null, 2), err => {
               if (err) throw err;
               console.log('Saved!');
             })
@@ -214,10 +221,7 @@ if (args[0] === 'all') {
     getAllLaws();
 } else if (parseInt(args[0]) > 0 && parseInt(args[0]) < 22) {
     const lawNum = parseInt(args[0]);
-    getOneLaw(lawNum).then(json => fs.writeFile(`law-${json.number.toString()}.txt`, JSON.stringify(json, null, 2), err => {
-        if (err) throw err;
-        console.log(`Law saved to file law-${json.number.toString()}.txt`);
-    }));
+    getOneLaw(lawNum);
 } else {
     console.log('No argument passed.');
 }
